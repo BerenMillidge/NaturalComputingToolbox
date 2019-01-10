@@ -1,12 +1,14 @@
 # simple impleentation of "canonical" particle swarm optimisation algorithms
 
+abstract struct Algorithm end
 
 struct PSO <: Algorithm
 	solver::PSOSolver
 	num_points::Int
 	fitnessFunction::Func
 	discountRate::AbstractFloat
-	learningRate::AbstractFloat
+	a1::AbstractFloat
+	a2::AbstractFloat
 
 end
 
@@ -31,7 +33,7 @@ function solve!(pso::PSO)
 	for p in pso.solver.points
 		r1 = rand()
 		r2 = rand()
-		p.velocity = (pso.d * p.velocity) + pso.l * (r1 * (p.bestFitness - p.currentFitness) + r2 * (pso.solver.globalBestFitness - p.currentFitness))
+		p.velocity = (pso.d * p.velocity) + (pso.a1 * r1 * (p.bestFitness - p.currentFitness) + (pso.a2 * r2 * (pso.solver.globalBestFitness - p.currentFitness))
 		p.coordinates += p.velocity# update position 
 		p.currentFitness = pso.fitnessFunction(p.coordinates)
 		if p.currentFitness > p.bestFitness
