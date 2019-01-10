@@ -9,6 +9,7 @@ struct PSO <: Algorithm
 	discountRate::AbstractFloat
 	a1::AbstractFloat
 	a2::AbstractFloat
+	a3::AbstractFloat
 
 end
 
@@ -21,18 +22,30 @@ mutable struct PSOPoint {T}
 	coordinates::AbstractArray{T}
 	velocity::AbstractArray{T}
 	currentFitness::AbstractFloat
-	bestFitness::AbstractFloat	
+	bestFitness::AbstractFloat
+	id::Int	
 end
 
 
-PSOPoint(d) = PSOPoint([rand() for i in d], [rand() for i in d], 0,0)
-PSOSolver() = PSOSolver([PSOPoint() for i in num_points], 0)
-PSO(f,n=50,d=0.7,a1=4, a2=4) = PSO(PSOSolver(), n,f,d,a1,a2)
+PSOPoint(d,j) = PSOPoint([rand() for i in d], [rand() for i in d], 0,0,j)
+PSOSolver() = PSOSolver([PSOPoint(j) for i in num_points], 0)
+PSO(f,n=50,d=0.7,a1=4, a2=4, a3=0) = PSO(PSOSolver(), n,f,d,a1,a2) # set a3 if you want repulsive force
+function repulsive_force(p, arr)
+	r3 = rand()
+	tot = 0
+	for p2 in arr
+		tot += (p.coordinates - p2.coordinates) / norm(p.coordinates - p2.coordinates)
+	end
+	return r3 * tot
+end
 
 function solve!(pso::PSO)
 	for p in pso.solver.points
 		r1 = rand()
 		r2 = rand()
+		z = 0
+		if pso.a3 != 0
+			z = 
 		p.velocity = (pso.d * p.velocity) + (pso.a1 * r1 * (p.bestFitness - p.currentFitness) + (pso.a2 * r2 * (pso.solver.globalBestFitness - p.currentFitness))
 		p.coordinates += p.velocity# update position 
 		p.currentFitness = pso.fitnessFunction(p.coordinates)
@@ -64,4 +77,5 @@ end
 # andexlpode them again if getting too irregular...
 # other possibilities is keeping track of interesting state spaceregions explored... I'm not totally sure how you do this
 # but it would be really cool to think about how to actually get it figured out, so who knows?
+# and how to parrallelise, in julia, which is reall key here!
 
